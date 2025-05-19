@@ -69,10 +69,10 @@
   <h2>Simulador Safra Corrigido</h2>
   <div class="container">
     <label>Valor da Venda (R$):</label>
-    <input type="number" id="valorBruto" step="0.01" value="1000">
+    <input type="number" id="valorBruto" oninput="calcular()" step="0.01" value="1000">
 
     <label>Nº de Parcelas:</label>
-    <select id="parcelas">
+    <select id="parcelas" onchange="calcular()">
       <option value="0">Débito à vista</option>
       <option value="1">1x</option>
       <option value="2">2x</option>
@@ -88,12 +88,37 @@
       <option value="12">12x</option>
     </select>
 
-    <button onclick="calcular()">Calcular Valor a Receber</button>
-
+    
     <div class="resultado" id="saida"></div>
+  <button onclick="adicionar()">+ Adicionar à Soma</button>
+    <button onclick="resetar()">Zerar Tudo</button>
+    <div class="resultado" id="somaTotal" style="margin-top:20px; background:#fff3e0; border:2px dashed #ffb74d; color:#e65100;">
+      🧮 Soma Total: <strong>R$ 0,00</strong>
+    </div>
   </div>
 
   <script>
+    let acumulado = 0;
+
+    function adicionar() {
+      const valorBruto = parseFloat(document.getElementById("valorBruto").value);
+      const parcelas = parseInt(document.getElementById("parcelas").value);
+      if (isNaN(valorBruto) || parcelas < 0 || parcelas > 12) return;
+
+      const { mdr, ant } = taxas[parcelas];
+      const taxaTotal = (mdr + ant) / 100;
+      const valorLiquido = valorBruto * (1 - taxaTotal);
+      const valorFinal = parcelas === 0 ? valorLiquido : valorLiquido * 0.985;
+
+      acumulado += valorFinal;
+      document.getElementById("somaTotal").innerHTML =
+        '🧮 Soma Total: <strong>R$ ' + acumulado.toLocaleString("pt-BR", {minimumFractionDigits:2}) + '</strong>';
+    }
+
+    function resetar() {
+      acumulado = 0;
+      document.getElementById("somaTotal").innerHTML = '🧮 Soma Total: <strong>R$ 0,00</strong>';
+    }
     const taxas = {
       0:  { mdr: 1.5,  ant: 0.00 },
       1:  { mdr: 1.59, ant: 1.51 },
